@@ -95,6 +95,21 @@ class ControllersTest extends TestCase
         $this->assertStringContainsString('Cookiebot is live on this site.', (string) $page->content);
     }
 
+    public function test_saving_with_the_platform_fixed_in_config_keeps_its_values(): void
+    {
+        $this->actingAs();
+        $this->pluginSettings(['sites' => ['*' => ['provider' => 'cookiebot']]]);
+
+        // The disabled select isn't posted.
+        $this->action('cookie-connect/sites/save', method: 'POST', body: [
+            'siteId' => $this->site()->id,
+            'settings' => ['providerValues' => ['cookiebot' => ['cbid' => '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d']]],
+        ]);
+
+        $this->assertSame('1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d', $this->plugin()->siteSettings->stored($this->site())['values']['cbid']);
+        $this->assertSame('live', $this->plugin()->output->renderer($this->site())->state());
+    }
+
     public function test_the_page_shows_values_set_in_config_as_fixed(): void
     {
         $this->actingAs();

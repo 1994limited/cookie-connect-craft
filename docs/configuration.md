@@ -57,7 +57,7 @@ Each site has its own settings: choose the site in the breadcrumb menu on the Co
 
 ## Caching
 
-What Cookie Connect prints depends only on the site's settings, not the visitor: the visitor's choice is read in the browser. So pages cached by Blitz, a CDN or `{% cache %}` work as they are. Blitz caches pages after Cookie Connect has added itself.
+What Cookie Connect prints depends only on the site's settings, not the visitor: the visitor's choice is read in the browser. So pages cached by Blitz, a CDN or `{% cache %}` work as they are. Blitz caches pages after Cookie Connect has added itself, and saving a site's Cookie Connect settings refreshes Blitz's cache so pages pick up the change. Clear other caches (a CDN, `{% cache %}` blocks) yourself after changing settings.
 
 ## Content Security Policy
 
@@ -67,6 +67,6 @@ If your CSP uses nonces, give Cookie Connect a function that returns this reques
 'nonce' => fn () => \modules\Csp::nonce(),
 ```
 
-Full-page caching and nonces don't mix (a cached page carries an old nonce). Use hashes instead: `consentCspHashes()` returns `'sha256-…'` sources for the inline scripts Cookie Connect printed, for your policy header. Call it after `consentHead()`. They only change when the settings do.
+Full-page caching and nonces don't mix (a cached page carries an old nonce). Use hashes instead: `consentCspHashes()` returns `'sha256-…'` sources for Cookie Connect's own inline scripts (the defaults, its script, Google's tags and the Control Panel's scripts), worked out even before they're added to the page, plus any inline scripts held back with `{% consent %}` earlier in the template. They only change when the settings do. Inline scripts held back after the call aren't included: give them a nonce, or move them to files.
 
 Your platform's own domains need allowing too; see its CSP documentation.

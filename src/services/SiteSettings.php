@@ -12,6 +12,7 @@ use NineteenNinetyFour\CookieConnect\Core\Providers\Providers;
 use NineteenNinetyFour\CookieConnect\Core\Settings\Settings as CoreSettings;
 use NineteenNinetyFour\CookieConnect\Core\Settings\Validator;
 use nineteenninetyfour\cookieconnect\Plugin;
+use putyourlightson\blitz\Blitz;
 use yii\base\Component;
 
 /**
@@ -107,7 +108,11 @@ class SiteSettings extends Component
     {
         $validator = new Validator(Providers::default());
         $settings = $validator->normalise(CoreSettings::fromArray($data));
-        $saved = array_intersect_key($settings->toArray(), array_flip(['provider', 'values', 'categoryMap', 'google', 'scripts']));
+        // What config fixes isn't saved: it may differ per environment.
+        $saved = CoreSettings::without(
+            array_intersect_key($settings->toArray(), array_flip(['provider', 'values', 'categoryMap', 'google', 'scripts'])),
+            $this->overridden($site),
+        );
 
         Db::upsert(self::TABLE, [
             'siteId' => $site->id,
@@ -116,8 +121,25 @@ class SiteSettings extends Component
 
         unset($this->stored[(int) $site->id]);
         Plugin::getInstance()->output->forget();
+        $this->refreshBlitz();
 
         return $validator->problems($this->forSite($site));
+    }
+
+    /**
+     * Cached pages carry the old settings: Blitz makes them again.
+     */
+    private function refreshBlitz(): void
+    {
+        if (! Craft::$app->getPlugins()->isPluginEnabled('blitz') || ! class_exists(Blitz::class)) {
+            return;
+        }
+
+        try {
+            Blitz::$plugin->refreshCache->refreshAll();
+        } catch (\Throwable $e) {
+            Craft::warning('Couldn’t refresh Blitz after Cookie Connect’s settings changed: '.$e->getMessage(), __METHOD__);
+        }
     }
 
     /**

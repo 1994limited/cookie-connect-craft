@@ -10,3 +10,4 @@
 - `{cookie_declaration}` and `{cookie_settings}` in content, and links to `#cookie-settings`.
 - `config/cookie-connect.php`: environments, what happens elsewhere, per-site settings from environment variables, a CSP nonce.
 - SEOmatic: Google tags it adds aren't added again, and the control panel says so.
+- Saving a site's settings refreshes Blitz's cache.

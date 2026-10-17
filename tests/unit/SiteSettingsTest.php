@@ -53,6 +53,18 @@ class SiteSettingsTest extends TestCase
         putenv('TEST_GTM_ID');
     }
 
+    public function test_values_fixed_in_config_are_not_saved(): void
+    {
+        $this->pluginSettings(['sites' => ['*' => ['provider' => 'cookiebot', 'google' => ['gtmId' => 'GTM-XYZ9876']]]]);
+
+        $this->plugin()->siteSettings->save($this->site(), ['provider' => '', 'values' => ['cbid' => '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d'], 'google' => ['gtmId' => 'GTM-AAAA1111']]);
+
+        $stored = $this->plugin()->siteSettings->stored($this->site());
+        $this->assertArrayNotHasKey('provider', $stored);
+        $this->assertArrayNotHasKey('gtmId', $stored['google']);
+        $this->assertSame('1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d', $stored['values']['cbid']);
+    }
+
     public function test_it_runs_only_in_the_environments_chosen(): void
     {
         $this->cookiebot('default');

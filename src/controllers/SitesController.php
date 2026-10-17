@@ -68,7 +68,8 @@ class SitesController extends Controller
         }
 
         $posted = (array) $request->getBodyParam('settings', []);
-        $provider = (string) ($posted['provider'] ?? '');
+        // A platform fixed in config has its select disabled, so it isn't posted.
+        $provider = (string) ($posted['provider'] ?? Plugin::getInstance()->siteSettings->overrides($site)['provider'] ?? '');
 
         $data = [
             'provider' => $provider,
