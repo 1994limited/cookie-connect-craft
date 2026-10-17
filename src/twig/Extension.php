@@ -3,6 +3,7 @@
 namespace nineteenninetyfour\cookieconnect\twig;
 
 use nineteenninetyfour\cookieconnect\Plugin;
+use nineteenninetyfour\cookieconnect\services\Output;
 use Twig\Extension\AbstractExtension;
 use Twig\Markup;
 use Twig\TwigFilter;
@@ -60,7 +61,7 @@ class Extension extends AbstractExtension
         return self::markup(self::output()->gate($html, $categories, $options ?? []));
     }
 
-    private static function output(): \nineteenninetyfour\cookieconnect\services\Output
+    private static function output(): Output
     {
         return Plugin::getInstance()->output;
     }

@@ -1,0 +1,23 @@
+dateModified: 1792272795
+email:
+  fromEmail: admin@example.com
+  fromName: 'Dog-ear Books'
+  transportType: craft\mail\transportadapters\Sendmail
+meta:
+  __names__:
+    d2c7146f-a2b9-4b3c-bb25-3c22407127f7: 'Dog-ear Books' # Dog-ear Books
+    5b0c8f3e-2f7a-4d55-9a8e-0f4c3d1e7a21: 'Eselsohr Bücher' # Eselsohr Bücher
+    ddf8e533-95fe-41ba-88c0-6b4d8aebaf31: 'Dog-ear Books' # Dog-ear Books
+system:
+  edition: pro
+  live: true
+  name: 'Dog-ear Books'
+  schemaVersion: 5.11.0.2
+  timeZone: Europe/London
+users:
+  allowPublicRegistration: false
+  defaultGroup: null
+  photoSubpath: null
+  photoVolumeUid: null
+  require2fa: false
+  requireEmailVerification: true

@@ -95,6 +95,14 @@ class Output extends Component
             return $html;
         }
 
+        return $this->inject($html);
+    }
+
+    /**
+     * Puts Cookie Connect into a page for the current site, whatever the request.
+     */
+    public function inject(string $html): string
+    {
         $renderer = $this->renderer();
 
         return Injector::inject(

@@ -1,0 +1,8 @@
+baseUrl: 'https://eselsohr.test/'
+handle: german
+hasUrls: true
+language: de-DE
+name: 'Eselsohr Bücher'
+primary: false
+siteGroup: ddf8e533-95fe-41ba-88c0-6b4d8aebaf31 # Dog-ear Books
+sortOrder: 2

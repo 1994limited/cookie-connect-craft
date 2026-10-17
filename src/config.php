@@ -8,8 +8,6 @@
  * config file.
  */
 
-use craft\helpers\App;
-
 return [
     // Where the consent platform loads (CRAFT_ENVIRONMENT values), or '*'.
     // 'environments' => ['production'],

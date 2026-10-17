@@ -5,11 +5,13 @@ namespace nineteenninetyfour\cookieconnect;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\events\TemplateEvent;
 use craft\helpers\UrlHelper;
 use craft\services\UserPermissions;
+use craft\web\twig\variables\Cp;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
@@ -125,7 +127,7 @@ class Plugin extends BasePlugin
         });
 
         // Nav items are shown to whoever has the permission, so add ours here.
-        Event::on(\craft\web\twig\variables\Cp::class, \craft\web\twig\variables\Cp::EVENT_REGISTER_CP_NAV_ITEMS, function (\craft\events\RegisterCpNavItemsEvent $event) {
+        Event::on(Cp::class, Cp::EVENT_REGISTER_CP_NAV_ITEMS, function (RegisterCpNavItemsEvent $event) {
             if ($item = $this->getCpNavItem()) {
                 $event->navItems[] = $item;
             }
