@@ -32,3 +32,7 @@ Then open **Cookie Connect** in the control panel, choose your platform and past
 ## Documentation
 
 Start with [the documentation's contents](docs/README.md).
+
+## Support
+
+Email [hello@1994.co.uk](mailto:hello@1994.co.uk), or open an issue on GitHub. Questions about your consent platform's own settings (its banner, its cookie scan) are best asked of the platform.
