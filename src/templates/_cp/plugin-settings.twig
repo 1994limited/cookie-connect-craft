@@ -1,0 +1,47 @@
+{#
+    Settings → Plugins → Cookie Connect. Saved to Project Config.
+#}
+{% import '_includes/forms' as forms %}
+{% set configNote = 'Set in config/cookie-connect.php.'|t('cookie-connect') %}
+
+<p>{{ 'Each site’s consent platform, Google tags and scripts are in <a href="{url}">Cookie Connect</a>.'|t('cookie-connect', {url: url('cookie-connect')})|raw }}</p>
+
+{{ forms.textField({
+    label: 'Environments'|t('cookie-connect'),
+    instructions: 'Where the consent platform loads, as CRAFT_ENVIRONMENT values separated by commas, or * for everywhere. This environment is “{environment}”.'|t('cookie-connect', {environment: environment ?? 'production'}),
+    name: 'environments',
+    value: settings.environments is iterable ? settings.environments|join(', ') : settings.environments,
+    class: 'code',
+    disabled: 'environments' in overridden,
+    warning: 'environments' in overridden ? configNote : null,
+}) }}
+
+{{ forms.selectField({
+    label: 'Elsewhere'|t('cookie-connect'),
+    instructions: 'What happens to content that needs consent where the platform doesn’t load (and on sites with no platform chosen).'|t('cookie-connect'),
+    name: 'whenOff',
+    value: settings.whenOff,
+    options: [
+        {label: 'Keep it blocked'|t('cookie-connect'), value: 'block'},
+        {label: 'Run it as if accepted (to test tags)'|t('cookie-connect'), value: 'run'},
+        {label: 'Leave it out'|t('cookie-connect'), value: 'omit'},
+    ],
+    disabled: 'whenOff' in overridden,
+    warning: 'whenOff' in overridden ? configNote : null,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Add to every page by itself'|t('cookie-connect'),
+    instructions: 'Puts Cookie Connect straight after <head> on every front-end page. Turn off only if you’d rather place {{ consentHead() }} in your layout yourself.'|t('cookie-connect'),
+    name: 'autoInsert',
+    on: settings.autoInsert,
+    disabled: 'autoInsert' in overridden,
+    warning: 'autoInsert' in overridden ? configNote : null,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Debug in the browser console'|t('cookie-connect'),
+    name: 'debug',
+    on: settings.debug,
+    disabled: 'debug' in overridden,
+}) }}

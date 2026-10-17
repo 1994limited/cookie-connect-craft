@@ -1,0 +1,84 @@
+{
+    "name": "1994/cookie-connect-craft",
+    "description": "Connects Craft CMS to the cookie consent platform you already use (Cookiebot, Usercentrics, OneTrust, CookieYes, iubenda, Termly, CookieFirst, Cookie-Script or any other): paste its ID in the control panel, get Google Consent Mode v2 in the right order, and mark scripts that need consent the same way whichever platform is behind it.",
+    "type": "craft-plugin",
+    "license": "proprietary",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "cookie consent",
+        "cookiebot",
+        "onetrust",
+        "usercentrics",
+        "consent mode",
+        "gdpr"
+    ],
+    "authors": [
+        {
+            "name": "1994",
+            "email": "hello@1994.co.uk",
+            "homepage": "https://1994.co.uk"
+        }
+    ],
+    "support": {
+        "email": "hello@1994.co.uk",
+        "docs": "https://github.com/1994limited/cookie-connect-craft/blob/main/docs/README.md",
+        "issues": "https://github.com/1994limited/cookie-connect-craft/issues",
+        "source": "https://github.com/1994limited/cookie-connect-craft"
+    },
+    "require": {
+        "php": "^8.2",
+        "1994/cookie-connect-core": "^1.0",
+        "craftcms/cms": "^5.6"
+    },
+    "require-dev": {
+        "codeception/codeception": "^5.2",
+        "codeception/module-asserts": "^3.0",
+        "codeception/module-yii2": "^1.1.9",
+        "craftcms/phpstan": "dev-main",
+        "laravel/pint": "^1.18",
+        "vlucas/phpdotenv": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "nineteenninetyfour\\cookieconnect\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "nineteenninetyfour\\cookieconnect\\tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "handle": "cookie-connect",
+        "name": "Cookie Connect",
+        "developer": "1994",
+        "developerUrl": "https://1994.co.uk",
+        "documentationUrl": "https://github.com/1994limited/cookie-connect-craft/blob/main/docs/README.md",
+        "class": "nineteenninetyfour\\cookieconnect\\Plugin",
+        "changelogUrl": "https://raw.githubusercontent.com/1994limited/cookie-connect-craft/main/CHANGELOG.md"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../cookie-connect-core"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.2"
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "codecept run"
+    }
+}

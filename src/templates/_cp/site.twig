@@ -1,0 +1,323 @@
+{#
+    Cookie Connect → one site's consent platform, Google tags and scripts.
+    Saved to the database, so it can be changed on a live site.
+#}
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = null %}
+
+{% if sites|length > 1 %}
+    {% set crumbs = [{
+        id: 'site-crumb',
+        icon: 'world',
+        iconAltText: 'Site'|t('app'),
+        label: site.name|t('site'),
+        menu: {
+            label: 'Select site'|t('app'),
+            items: sites|map(s => {
+                label: s.name|t('site'),
+                url: url('cookie-connect/' ~ s.handle),
+                selected: s.id == site.id,
+            }),
+        },
+    }] %}
+{% endif %}
+
+{% set configNote = 'Set in config/cookie-connect.php.'|t('cookie-connect') %}
+
+{% macro problem(problems, path) %}
+    {% if problems[path] is defined %}<ul class="errors"><li>{{ problems[path] }}</li></ul>{% endif %}
+{% endmacro %}
+
+{% block content %}
+    {{ actionInput('cookie-connect/sites/save') }}
+    {{ hiddenInput('siteId', site.id) }}
+
+    {# Where things stand #}
+    <div class="cc-status cc-status--{{ state }}">
+        {% switch state %}
+            {% case 'live' %}
+                <p><strong>{{ '{platform} is live on this site.'|t('cookie-connect', {platform: provider.name}) }}</strong></p>
+            {% case 'off' %}
+                <p><strong>{{ 'Cookie Connect is off in this environment ({environment}).'|t('cookie-connect', {environment: environment}) }}</strong></p>
+                <p>{{ {
+                    block: 'Content that needs consent stays blocked here.',
+                    run: 'Content that needs consent runs here as if it had been accepted, so you can test your tags.',
+                    omit: 'Content that needs consent is left out here.',
+                }[settings.whenOff]|t('cookie-connect') }}
+                {% if canChangePluginSettings %}<a href="{{ url('settings/plugins/cookie-connect') }}">{{ 'Change where it runs'|t('cookie-connect') }}</a>{% endif %}</p>
+            {% case 'none' %}
+                <p><strong>{{ 'Choose your consent platform below.'|t('cookie-connect') }}</strong></p>
+                <p>{{ 'Until then nothing is loaded and content that needs consent stays blocked.'|t('cookie-connect') }}</p>
+            {% case 'unknown' %}
+                <p><strong>{{ 'This version of Cookie Connect doesn’t know the platform “{platform}”.'|t('cookie-connect', {platform: settings.provider}) }}</strong></p>
+            {% default %}
+                <p><strong>{{ 'Fix what’s marked below and save. Until then {platform} isn’t loaded.'|t('cookie-connect', {platform: provider.name ?? ''}) }}</strong></p>
+        {% endswitch %}
+    </div>
+
+    {# The platform #}
+    <h2>{{ 'Consent platform'|t('cookie-connect') }}</h2>
+
+    {{ forms.selectField({
+        label: 'Platform'|t('cookie-connect'),
+        instructions: 'The cookie consent platform this site uses. Switching later needs no template changes.'|t('cookie-connect'),
+        id: 'cc-provider',
+        name: 'settings[provider]',
+        value: settings.provider ?? '',
+        options: [{label: 'None'|t('cookie-connect'), value: ''}]|merge(providers|map(p => {label: p.name, value: p.handle})),
+        disabled: ('provider' in overridden),
+        warning: ('provider' in overridden) ? configNote : null,
+        errors: problems.provider is defined ? [problems.provider] : null,
+    }) }}
+
+    {% for p in providers %}
+        {% set chosen = p.handle == settings.provider %}
+        <div class="cc-provider" data-cc-provider="{{ p.handle }}" {{ chosen ? '' : 'hidden' }}>
+            {% for field in p.fields %}
+                {% set path = 'values.' ~ field.handle %}
+                {% set name = 'settings[providerValues][' ~ p.handle ~ '][' ~ field.handle ~ ']' %}
+                {% set value = chosen ? (settings.values[field.handle] ?? field.default) : field.default %}
+                {% set common = {
+                    label: field.label|t('cookie-connect'),
+                    instructions: field.instructions ? field.instructions|t('cookie-connect') : null,
+                    id: 'cc-' ~ p.handle ~ '-' ~ field.handle,
+                    name: name,
+                    required: field.required,
+                    disabled: chosen and (path in overridden),
+                    warning: chosen and (path in overridden) ? configNote : null,
+                    errors: chosen and problems[path] is defined ? [problems[path]] : null,
+                } %}
+                {% switch field.type %}
+                    {% case 'toggle' %}
+                        {{ forms.lightswitchField(common|merge({on: value ? true : false})) }}
+                    {% case 'select' %}
+                        {{ forms.selectField(common|merge({value: value, options: field.options})) }}
+                    {% case 'code' %}
+                        {{ forms.textareaField(common|merge({value: value, rows: 6, class: 'code', placeholder: field.example})) }}
+                    {% default %}
+                        {{ forms.textField(common|merge({
+                            value: value is string and '{' in value ? '' : value,
+                            placeholder: field.example,
+                            class: 'code',
+                        })) }}
+                {% endswitch %}
+            {% endfor %}
+
+            {% if p.notes or p.website %}
+                <div class="cc-notes">
+                    {% for note in p.notes %}<p>{{ note|t('cookie-connect') }}</p>{% endfor %}
+                    <p class="light">
+                        {{ 'Checked against {platform}’s documentation on {date}.'|t('cookie-connect', {platform: p.name, date: p.verified|date('short')}) }}
+                        {% if p.docs|length %}<a href="{{ p.docs|first }}" target="_blank" rel="noopener">{{ 'Their docs'|t('cookie-connect') }}</a>{% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <hr>
+
+    {# Google #}
+    <h2>{{ 'Google tags and Consent Mode'|t('cookie-connect') }}</h2>
+    <p class="light">{{ 'Optional. Add them here rather than in your templates so they load in the right order: Consent Mode defaults first, then your consent platform, then Google.'|t('cookie-connect') }}</p>
+
+    {% set google = settings.google %}
+    {% set bySeomatic = seomaticTags|length > 0 %}
+
+    {% if bySeomatic %}
+        <div class="cc-notes">
+            {% for label, id in seomaticTags %}
+                <p>{{ '{tag} is added by SEOmatic{id}.'|t('cookie-connect', {tag: label, id: id ? ' (' ~ id ~ ')' : ''}) }}</p>
+            {% endfor %}
+            <p class="light">{{ 'Cookie Connect still puts the Consent Mode defaults and your consent platform ahead of it. To add Google’s tags here instead, turn them off in SEOmatic → Tracking Scripts.'|t('cookie-connect') }}</p>
+        </div>
+    {% endif %}
+
+    {% if not bySeomatic or google.gtmId or google.ga4Id %}
+        {% if bySeomatic %}
+            <p class="warning with-icon">{{ 'You’ve also added Google tags here. Keep them in one place: clear these, or turn them off in SEOmatic. (The same ID is never added twice.)'|t('cookie-connect') }}</p>
+        {% endif %}
+        {{ forms.textField({
+            label: 'Google Tag Manager container ID'|t('cookie-connect'),
+            instructions: 'Looks like GTM-ABC1234. You can paste the whole snippet.'|t('cookie-connect'),
+            name: 'settings[google][gtmId]',
+            value: google.gtmId,
+            placeholder: 'GTM-ABC1234',
+            class: 'code',
+            disabled: ('google.gtmId' in overridden),
+            warning: ('google.gtmId' in overridden) ? configNote : null,
+            errors: problems['google.gtmId'] is defined ? [problems['google.gtmId']] : null,
+        }) }}
+        {{ forms.textField({
+            label: 'Google Analytics 4 measurement ID'|t('cookie-connect'),
+            instructions: 'Looks like G-ABC123XYZ9. Leave empty if Google Analytics runs through Tag Manager.'|t('cookie-connect'),
+            name: 'settings[google][ga4Id]',
+            value: google.ga4Id,
+            placeholder: 'G-ABC123XYZ9',
+            class: 'code',
+            disabled: ('google.ga4Id' in overridden),
+            warning: ('google.ga4Id' in overridden) ? configNote : null,
+            errors: problems['google.ga4Id'] is defined ? [problems['google.ga4Id']] : null,
+        }) }}
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        label: 'Google Consent Mode v2'|t('cookie-connect'),
+        instructions: 'Tells Google’s tags what each visitor allowed. Leave on unless you never use Google tags.'|t('cookie-connect'),
+        name: 'settings[google][consentMode]',
+        on: google.consentMode,
+        disabled: ('google.consentMode' in overridden),
+    }) }}
+    {{ forms.selectField({
+        label: 'Mode'|t('cookie-connect'),
+        name: 'settings[google][mode]',
+        value: google.mode,
+        options: [
+            {label: 'Advanced: Google tags load and send cookieless pings until consent'|t('cookie-connect'), value: 'advanced'},
+            {label: 'Basic: Google Analytics loads only after consent'|t('cookie-connect'), value: 'basic'},
+        ],
+        disabled: ('google.mode' in overridden),
+    }) }}
+    {{ forms.selectField({
+        label: 'Ask for consent'|t('cookie-connect'),
+        name: 'settings[google][regions]',
+        value: google.regions,
+        options: [
+            {label: 'Everywhere'|t('cookie-connect'), value: 'everywhere'},
+            {label: 'Only in the EEA, the UK and Switzerland'|t('cookie-connect'), value: 'eea'},
+        ],
+        disabled: ('google.regions' in overridden),
+    }) }}
+
+    <details class="cc-details">
+        <summary>{{ 'More Consent Mode settings'|t('cookie-connect') }}</summary>
+        {{ forms.lightswitchField({
+            label: 'My Tag Manager container sets the defaults'|t('cookie-connect'),
+            instructions: 'Turn on if your container has a consent platform template on the Consent Initialization trigger, so the defaults aren’t set twice.'|t('cookie-connect'),
+            name: 'settings[google][gtmSetsDefaults]',
+            on: google.gtmSetsDefaults,
+        }) }}
+        {{ forms.lightswitchField({
+            label: 'Redact ad data when ads are declined'|t('cookie-connect'),
+            name: 'settings[google][adsDataRedaction]',
+            on: google.adsDataRedaction,
+        }) }}
+        {{ forms.lightswitchField({
+            label: 'Pass ad click information through URLs'|t('cookie-connect'),
+            name: 'settings[google][urlPassthrough]',
+            on: google.urlPassthrough,
+        }) }}
+        {{ forms.textField({
+            label: 'Wait for the consent platform (milliseconds)'|t('cookie-connect'),
+            instructions: 'How long Google’s tags wait for the platform’s answer. Leave empty for the platform’s own recommendation.'|t('cookie-connect'),
+            name: 'settings[google][waitForUpdate]',
+            value: google.waitForUpdate,
+            type: 'number',
+            min: 0,
+            size: 6,
+            placeholder: provider ? provider.waitForUpdate() : 500,
+        }) }}
+    </details>
+
+    <hr>
+
+    {# Scripts #}
+    <h2>{{ 'Scripts'|t('cookie-connect') }}</h2>
+    <p class="light">{{ 'Paste tracking and embed codes here (Hotjar, a Meta pixel, a chat widget) and they’ll wait for the visitor’s consent, with no template changes.'|t('cookie-connect') }}</p>
+
+    {{ forms.editableTableField({
+        id: 'cc-scripts',
+        name: 'settings[scripts]',
+        allowAdd: not ('scripts' in overridden),
+        allowDelete: not ('scripts' in overridden),
+        allowReorder: not ('scripts' in overridden),
+        static: ('scripts' in overridden),
+        warning: ('scripts' in overridden) ? configNote : null,
+        addRowLabel: 'Add a script'|t('cookie-connect'),
+        cols: {
+            name: {heading: 'Name'|t('cookie-connect'), type: 'singleline', width: '20%'},
+            category: {heading: 'Needs'|t('cookie-connect'), type: 'select', width: '12%', options: categories|map(c => {label: c.value|t('cookie-connect')|capitalize, value: c.value})},
+            placement: {heading: 'Where'|t('cookie-connect'), type: 'select', width: '12%', options: [
+                {label: 'Head'|t('cookie-connect'), value: 'head'},
+                {label: 'Body start'|t('cookie-connect'), value: 'body_start'},
+                {label: 'Body end'|t('cookie-connect'), value: 'body_end'},
+            ]},
+            code: {heading: 'Code'|t('cookie-connect'), type: 'multiline', code: true},
+            enabled: {heading: 'On'|t('cookie-connect'), type: 'lightswitch', width: '6%'},
+        },
+        rows: settings.scripts|map(s => {
+            name: s.name,
+            category: (s.categories|first).value,
+            placement: s.placement,
+            code: s.code,
+            enabled: s.enabled,
+        }),
+        defaultValues: {category: 'marketing', placement: 'head', enabled: true},
+    }) }}
+    {% for path, message in problems|filter((m, p) => p starts with 'scripts.') %}
+        <ul class="errors"><li>{{ 'Script {n}'|t('cookie-connect', {n: (path|split('.'))[1] + 1}) }}: {{ message }}</li></ul>
+    {% endfor %}
+
+    <hr>
+
+    {# Advanced #}
+    <details class="cc-details" {{ settings.categoryMap|filter|length or problems|filter((m, p) => p starts with 'categoryMap.')|length ? 'open' }}>
+        <summary>{{ 'Category mapping'|t('cookie-connect') }}</summary>
+        <p class="light">{{ 'The id your platform uses for each of Cookie Connect’s categories. Only change these if you renamed or added categories in your platform.'|t('cookie-connect') }}</p>
+        {% for category in categories|filter(c => c.value != 'necessary') %}
+            {{ forms.textField({
+                label: category.value|t('cookie-connect')|capitalize,
+                name: 'settings[categoryMap][' ~ category.value ~ ']',
+                value: settings.categoryMap[category.value] ?? '',
+                placeholder: provider ? provider.categories[category.value] : '',
+                class: 'code',
+                size: 20,
+                disabled: ('categoryMap.' ~ category.value in overridden),
+                errors: problems['categoryMap.' ~ category.value] is defined ? [problems['categoryMap.' ~ category.value]] : null,
+            }) }}
+        {% endfor %}
+    </details>
+
+    <details class="cc-details">
+        <summary>{{ 'What’s added to each page'|t('cookie-connect') }}</summary>
+        <p class="light">
+            {% if pluginSettings.autoInsert %}
+                {{ 'Added straight after <head> on every page of this site. You don’t need to change your templates.'|t('cookie-connect')|raw }}
+            {% else %}
+                {{ 'Adding to pages is turned off: put {{ consentHead() }} straight after <head> in your layout.'|t('cookie-connect') }}
+            {% endif %}
+        </p>
+        <pre class="cc-preview"><code>{{ preview }}</code></pre>
+    </details>
+{% endblock %}
+
+{% css %}
+.cc-status { padding: 12px 16px; border-radius: var(--large-border-radius); margin-bottom: 24px; background: var(--gray-050); border-inline-start: 4px solid var(--gray-300); }
+.cc-status p { margin: 0; } .cc-status p + p { margin-top: 4px; }
+.cc-status--live { background: var(--green-050); border-color: var(--green-500); }
+.cc-status--incomplete, .cc-status--unknown { background: var(--red-050); border-color: var(--red-500); }
+.cc-status--off, .cc-status--none { background: var(--yellow-050); border-color: var(--yellow-500); }
+.cc-notes { margin: 0 0 24px; color: var(--gray-700); } .cc-notes p { margin: 0 0 6px; }
+.cc-details { margin: 16px 0; } .cc-details > summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+.cc-preview { max-height: 420px; overflow: auto; padding: 12px; background: var(--gray-050); border-radius: var(--medium-border-radius); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+{% endcss %}
+
+{% js %}
+(function () {
+    var select = document.getElementById('cc-provider');
+    if (!select) { return; }
+    function show() {
+        document.querySelectorAll('[data-cc-provider]').forEach(function (group) {
+            var on = group.getAttribute('data-cc-provider') === select.value;
+            group.hidden = !on;
+            group.querySelectorAll('input, select, textarea').forEach(function (input) { input.disabled = !on || input.hasAttribute('data-cc-locked'); });
+        });
+    }
+    document.querySelectorAll('[data-cc-provider] input:disabled, [data-cc-provider] select:disabled, [data-cc-provider] textarea:disabled').forEach(function (input) { input.setAttribute('data-cc-locked', ''); });
+    select.addEventListener('change', show);
+    show();
+})();
+{% endjs %}
