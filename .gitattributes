@@ -7,3 +7,4 @@
 /docs/images export-ignore
 /tests export-ignore
 /pint.json export-ignore
+/phpstan.neon export-ignore
