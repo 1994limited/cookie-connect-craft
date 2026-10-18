@@ -61,12 +61,6 @@
         "class": "nineteenninetyfour\\cookieconnect\\Plugin",
         "changelogUrl": "https://raw.githubusercontent.com/1994limited/cookie-connect-craft/main/CHANGELOG.md"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../cookie-connect-core"
-        }
-    ],
     "config": {
         "sort-packages": true,
         "platform": {
@@ -77,7 +71,7 @@
             "craftcms/plugin-installer": true
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "scripts": {
         "test": "codecept run"
