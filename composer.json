@@ -1,6 +1,6 @@
 {
     "name": "1994/cookie-connect-craft",
-    "description": "Connects Craft CMS to the cookie consent platform you already use (Cookiebot, Usercentrics, OneTrust, CookieYes, iubenda, Termly, CookieFirst, Cookie-Script or any other): paste its ID in the control panel, get Google Consent Mode v2 in the right order, and mark scripts that need consent the same way whichever platform is behind it.",
+    "description": "Connect your site to the cookie consent platform you already use: paste its ID, and get Google Consent Mode v2 in the right order.",
     "type": "craft-plugin",
     "license": "proprietary",
     "keywords": [
