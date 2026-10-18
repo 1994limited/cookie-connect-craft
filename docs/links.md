@@ -24,6 +24,8 @@ The tokens are swapped as the page is sent, so they work in any field. (If **Add
 {{ entry.body|consentTokens }}
 ```
 
+`|consentTokens` escapes plain strings first, like any Twig output; HTML fields (CKEditor) pass through.
+
 Any element with `data-cookie-connect-open` opens the preferences. Where a platform opens its preferences from its own class (CookieYes, Termly, iubenda, Cookie-Script), the link gets that class too and the platform opens them.
 
 "Cookie settings" and the placeholder text are translatable (category `cookie-connect`).

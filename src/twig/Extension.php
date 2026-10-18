@@ -42,7 +42,9 @@ class Extension extends AbstractExtension
 
     public function getFilters(): array
     {
-        $safe = ['is_safe' => ['html']];
+        // Strings that aren't known to be HTML are escaped first, as Twig would
+        // escape them anyway; HTML fields (Markup) and |raw pass through.
+        $safe = ['is_safe' => ['html'], 'pre_escape' => 'html'];
 
         return [
             new TwigFilter('consent', fn (mixed $html, string|array $categories, array $options = []) => self::gate((string) $html, $categories, $options), $safe),

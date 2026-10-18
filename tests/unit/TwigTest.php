@@ -2,6 +2,8 @@
 
 namespace nineteenninetyfour\cookieconnect\tests\unit;
 
+use Twig\Markup;
+
 class TwigTest extends TestCase
 {
     public function test_the_consent_tag_uses_the_platforms_markup(): void
@@ -39,7 +41,8 @@ class TwigTest extends TestCase
         $this->cookiebot();
 
         $this->assertStringContainsString('data-cookieconsent="marketing"', $this->render("{{ consent('marketing', '<script>a()</script>') }}"));
-        $this->assertStringContainsString('data-cookieconsent="preferences"', $this->render("{{ html|consent('preferences') }}", ['html' => '<script>b()</script>']));
+        $this->assertStringContainsString('data-cookieconsent="preferences"', $this->render("{{ html|raw|consent('preferences') }}", ['html' => '<script>b()</script>']));
+        $this->assertStringContainsString('data-cookieconsent="preferences"', $this->render("{{ html|consent('preferences') }}", ['html' => new Markup('<script>b()</script>', 'UTF-8')]));
     }
 
     public function test_the_head_declaration_settings_link_and_tokens(): void
@@ -58,6 +61,15 @@ class TwigTest extends TestCase
         );
         $this->assertStringContainsString('id="CookieDeclaration"', $this->render("{{ '<p>{cookie_declaration}</p>'|consentTokens }}"));
         $this->assertStringStartsWith("'sha256-", $this->render('{% set head = consentHead() %}{{ consentCspHashes()|first }}'));
+    }
+
+    public function test_the_filters_escape_plain_strings_from_visitors(): void
+    {
+        $this->cookiebot();
+        $evil = '<img src=x onerror=alert(1)>{cookie_settings}';
+
+        $this->assertStringNotContainsString('<img', $this->render('{{ q|consent(\'marketing\') }}', ['q' => $evil]));
+        $this->assertStringStartsWith('&lt;img', $this->render('{{ q|consentTokens }}', ['q' => $evil]));
     }
 
     public function test_craft_cookie_connect_variable(): void

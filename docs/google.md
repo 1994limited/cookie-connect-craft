@@ -47,4 +47,4 @@ SEOmatic can add Google Tag Manager and gtag.js too, under **SEOmatic → Tracki
 - If SEOmatic adds them, the Cookie Connect page says so and hides its own Google tag fields. Cookie Connect still puts the Consent Mode defaults and your platform ahead of SEOmatic's tags, because it goes straight after `<head>`.
 - To add them through Cookie Connect instead, turn them off in SEOmatic.
 
-Cookie Connect never adds a tag whose ID is already on the page, whoever put it there, so the same container never loads twice. SEOmatic's tags don't set Consent Mode defaults, so Cookie Connect still does.
+When Cookie Connect adds itself to pages (the default), it never adds a tag whose ID a script on the page already loads, whoever put it there, so the same container never loads twice. If you place `{{ consentHead() }}` yourself, it can't see the rest of the page: keep Google's tags in one place. SEOmatic's tags don't set Consent Mode defaults, so Cookie Connect still does.

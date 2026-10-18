@@ -6,6 +6,7 @@ use Craft;
 use craft\elements\User;
 use craft\web\TemplateResponseFormatter;
 use nineteenninetyfour\cookieconnect\Plugin;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
@@ -55,6 +56,19 @@ class ControllersTest extends TestCase
         }
 
         return $response;
+    }
+
+    public function test_saving_needs_a_csrf_token(): void
+    {
+        $this->actingAs();
+        Craft::$app->getRequest()->enableCsrfValidation = true;
+
+        try {
+            $this->expectException(BadRequestHttpException::class);
+            $this->action('cookie-connect/sites/save', method: 'POST', body: ['siteId' => $this->site()->id, 'settings' => ['provider' => 'cookiebot']]);
+        } finally {
+            Craft::$app->getRequest()->enableCsrfValidation = false;
+        }
     }
 
     public function test_the_page_needs_the_permission(): void

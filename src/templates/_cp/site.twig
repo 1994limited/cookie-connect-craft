@@ -199,16 +199,22 @@
             instructions: 'Turn on if your container has a consent platform template on the Consent Initialization trigger, so the defaults aren’t set twice.'|t('cookie-connect'),
             name: 'settings[google][gtmSetsDefaults]',
             on: google.gtmSetsDefaults,
+            disabled: ('google.gtmSetsDefaults' in overridden),
+            warning: ('google.gtmSetsDefaults' in overridden) ? configNote : null,
         }) }}
         {{ forms.lightswitchField({
             label: 'Redact ad data when ads are declined'|t('cookie-connect'),
             name: 'settings[google][adsDataRedaction]',
             on: google.adsDataRedaction,
+            disabled: ('google.adsDataRedaction' in overridden),
+            warning: ('google.adsDataRedaction' in overridden) ? configNote : null,
         }) }}
         {{ forms.lightswitchField({
             label: 'Pass ad click information through URLs'|t('cookie-connect'),
             name: 'settings[google][urlPassthrough]',
             on: google.urlPassthrough,
+            disabled: ('google.urlPassthrough' in overridden),
+            warning: ('google.urlPassthrough' in overridden) ? configNote : null,
         }) }}
         {{ forms.textField({
             label: 'Wait for the consent platform (milliseconds)'|t('cookie-connect'),
@@ -219,6 +225,8 @@
             min: 0,
             size: 6,
             placeholder: provider ? provider.waitForUpdate() : 500,
+            disabled: ('google.waitForUpdate' in overridden),
+            warning: ('google.waitForUpdate' in overridden) ? configNote : null,
         }) }}
     </details>
 

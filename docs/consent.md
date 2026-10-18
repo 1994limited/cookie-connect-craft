@@ -60,10 +60,13 @@ On its own:
 For HTML in a variable or field (an embed code field, say):
 
 ```twig
+{{ entry.embedCode|raw|consent('marketing') }}
+{{ entry.embedCode|raw|consent('marketing', { placeholder: true }) }}
+{{ entry.body|consent('marketing') }}   {# CKEditor fields are HTML already #}
 {{ consent('marketing', entry.embedCode) }}
-{{ entry.embedCode|consent('marketing') }}
-{{ entry.embedCode|consent('marketing', { placeholder: true }) }}
 ```
+
+Like any Twig output, a plain string through the filter is escaped first, so a value a visitor could set never becomes HTML. Use `|raw` for a field you trust to hold HTML. The `consent()` function prints what it's given as HTML: pass it only HTML you trust.
 
 ## Scripts pasted into the control panel
 
