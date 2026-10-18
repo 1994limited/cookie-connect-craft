@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 - 2026-10-18
+
+### Changed
+- A new icon: the cookie with a folded corner in its bite, in the 1994 family style (plugin icon and control panel nav icon).
+- A one-line description, so Craft's Plugins page isn't crowded.
+
 ## 1.0.0 - 2026-10-18
 
 ### Added
